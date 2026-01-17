@@ -1,2 +1,2 @@
 # portfolio
-My Graphic Designing Portfolio Website
+Graphic Designing Portfolio Website
