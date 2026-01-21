@@ -208,12 +208,19 @@ filterBtns.forEach(btn => {
 const lightbox = document.getElementById('lightbox');
 const lightboxImage = document.getElementById('lightboxImage');
 const lightboxClose = document.getElementById('lightboxClose');
-const viewBtns = document.querySelectorAll('.view-btn');
+// Select the items, not just the buttons
+const portfolioItemsList = document.querySelectorAll('.portfolio-item');
 
-viewBtns.forEach(btn => {
-    btn.addEventListener('click', (e) => {
+portfolioItemsList.forEach(item => {
+    item.addEventListener('click', (e) => {
+        // 1. Check if the user clicked the External Link button or the icon inside it
+        if (e.target.closest('.portfolio-link')) {
+            // If they clicked the link, do nothing here (let the browser open the link)
+            return;
+        }
+
+        // 2. Otherwise, open the Lightbox
         e.preventDefault();
-        const item = btn.closest('.portfolio-item');
         const img = item.querySelector('img');
         lightboxImage.src = img.src;
         lightbox.classList.add('active');
@@ -294,23 +301,54 @@ testimonialSlider.addEventListener('mouseleave', () => {
 // =====================
 // Contact Form
 // =====================
+// =====================
+// Contact Form (Web3Forms - No Refresh)
+// =====================
 const contactForm = document.getElementById('contactForm');
+const submitBtn = contactForm.querySelector('.btn-submit');
+const originalBtnText = submitBtn.innerHTML;
 
-contactForm.addEventListener('submit', (e) => {
-    e.preventDefault();
+contactForm.addEventListener('submit', function(e) {
+    e.preventDefault(); // Prevents the page from reloading
+
+    // Change button text to indicate loading
+    submitBtn.innerHTML = '<span>Sending...</span><i class="fas fa-spinner fa-spin"></i>';
     
-    // Get form data
+    // Create FormData object
     const formData = new FormData(contactForm);
-    const data = Object.fromEntries(formData);
-    
-    // Here you would typically send the data to a server
-    console.log('Form submitted:', data);
-    
-    // Show success message
-    alert('Thank you for your message! I will get back to you soon.');
-    
-    // Reset form
-    contactForm.reset();
+    const object = Object.fromEntries(formData);
+    const json = JSON.stringify(object);
+
+    // Send data to Web3Forms using fetch
+    fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: json
+    })
+    .then(async (response) => {
+        let json = await response.json();
+        if (response.status == 200) {
+            // Success
+            alert('Thank you! Your message has been sent successfully.');
+            contactForm.reset(); // Clear the form inputs
+        } else {
+            // Error from API
+            console.log(response);
+            alert(json.message);
+        }
+    })
+    .catch(error => {
+        // Network Error
+        console.log(error);
+        alert('Something went wrong! Please try again later.');
+    })
+    .then(function() {
+        // Reset button text back to original
+        submitBtn.innerHTML = originalBtnText;
+    });
 });
 
 // =====================
